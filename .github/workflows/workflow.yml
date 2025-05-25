@@ -1,12 +1,10 @@
 name: deploy workflow to dev
 
 on: 
-  pull_request:
-    types:
-      - opened
+  push:
     branches:
-      - dev
-  workflow_dispatch:
+      - dev  # Trigger when code is pushed (e.g., merged) into 'dev'
+  workflow_dispatch:  # Optional manual trigger
 
 jobs:
   deploy-to-databricks:
@@ -26,11 +24,7 @@ jobs:
 
       - uses: databricks/setup-cli@main
 
-      - name: Extract source branch name
-        id: extract_branch
-        run: echo "branch=${GITHUB_HEAD_REF}" >> $GITHUB_OUTPUT
-
-      - name: Update Databricks Git folder
+      - name: Update Databricks Git folder to dev
         run: |
-          echo "Updating Databricks repo to branch: ${{ steps.extract_branch.outputs.branch }}"
-          databricks repos update ${{ env.REPO_PATH }} --branch "${{ steps.extract_branch.outputs.branch }}"
+          echo "Updating Databricks repo to track 'dev' branch"
+          databricks repos update ${{ env.REPO_PATH }} --branch dev
