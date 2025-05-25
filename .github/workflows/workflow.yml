@@ -1,0 +1,39 @@
+name: deploy workflow to dev
+on: 
+  pull_request:
+    types:
+      - opened
+    branches:
+      - dev
+  workflow_dispatch:
+
+jobs:
+  first-job:
+    runs-on: ubuntu-latest
+    env:
+      DATABRICKS_HOST: ${{ secrets.DEPLOYMENT_TARGET_URL }}
+      DATABRICKS_TOKEN:  ${{ secrets.DEPLOYMENT_TARGET_TOKEN }}
+      REPO_PATH: /Workspace/Repos/tetris-dev/databrick-cicd
+
+    steps:
+      # downloading files
+      - uses: actions/checkout@v3 
+
+      # Setting up python
+      - name: Setup Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: 3.8
+      
+      # Download the Databricks CLI. See https://github.com/databricks/setup-cli
+      - uses: databricks/setup-cli@main
+
+      - name: Extract branch name
+        shell: bash
+        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+        id: extract_branch
+
+      - name: Update Databricks Git folder
+        run: |
+          databricks repos update ${{env.REPO_PATH}} --branch "${{ steps.extract_branch.outputs.branch }}"
+        
